@@ -16,6 +16,9 @@ ENV/
 # --- Jupyter ---
 .ipynb_checkpoints/
 
+# --- Matplotlib ---
+*.eps-converted-to.pdf
+
 # --- Editors / OS ---
 .vscode/
 .idea/
