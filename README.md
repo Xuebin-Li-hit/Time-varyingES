@@ -65,9 +65,8 @@ Each script writes its figures into `out/`.
 ## LMI feasibility (`LMI/`)
 
 `LMI/check_lmi.py` verifies the three LMIs of Proposition 1 as a semidefinite
-program and reports a feasibility margin for the parameter set used in the
-paper. `LMI/param_search_sim.py` sweeps parameter ranges to select feasible
-gains. All three paper figures use **strictly LMI-feasible** gains —
+program and reports a feasibility margin for the parameter sets used in the
+paper, together with sweeps over `gamma` and `v`. All three paper figures use **strictly LMI-feasible** gains —
 margins Fig. 2 $+0.0126$, Fig. 3 $+0.0140$, Fig. 4 $+0.244$ / $+0.282$. See
 [`LMI/README.md`](LMI/README.md) for the certificates and usage.
 
@@ -135,10 +134,10 @@ prescribed-time panel (at $t = 9$, unavoidable since $\phi \to \infty$ as
 $t \to T$); the horizons of the other two are short enough that their caps never
 activate.
 
-Every time constant here is exactly twice its earlier value: the corrected
-$\Phi_{2}$ (see `LMI/README.md`) rules out $1/(q\rho) = 0.2$ for this cost
-family, and doubling $\rho$ from $2.5$ to $5$ is what restores the certificate.
-Doubling each horizon to match keeps the panels' shape unchanged.
+$\rho$ is what sets every time constant of the run, so the three horizons scale
+with it. For this cost family $1/(q\rho) = 0.1$ is what the LMIs admit (see
+`LMI/README.md`), and the horizons above are simply what that growth rate needs
+to bring the error down.
 
 ## 3. Chirpy probing, time-varying extremum (Fig. 4 of the paper)
 
@@ -160,9 +159,9 @@ the third. Margins $+0.244$ / $+0.244$ / $+0.282$; certificates
 $p_{11} = 2.511$, $\delta = 1.697$ and $p_{11} = 2.519$, $\delta = 1.819$, both
 at $p_{22} = 1$.
 
-This is the one example the corrected $\Phi_{2}$ left alone: its costs are pure
-quadratics, $m = M = 2$, so the $\delta M^{2}$ term of $\Phi_{11}$ is loose and
-the gains stayed certified without retuning.
+The costs here are pure quadratics, $m = M = 2$, so the $\delta M^{2}$ term of
+$\Phi_{11}$ is loose and this example tolerates much larger gains than the two
+above — $\alpha k = 1.6$ against $0.4$.
 
 ![Fig. 4](fig/fig4_chirpy_varying.png)
 

@@ -25,16 +25,13 @@ os.makedirs('out', exist_ok=True)
 # ---------------------------------------------------------------------------
 # Chirp phase.  The probing argument in (14) is omega_s * tau with
 #     tau = t_0 + rho (phi^q(t) - 1),
-# so the phase is omega * rho * (phi^q - 1).  An earlier version of this
-# script multiplied that by t as well, which is dimensionally wrong (rad*s)
-# and destroys the chirp demodulation.
+# so the phase is omega * rho * (phi^q - 1) and carries no separate factor t;
+# writing one would make the argument rad*s and destroy the demodulation.
 #
 # All three configurations share rho = 5, hence 1/(q rho) = 0.1, so one LMI
 # certificate covers them (gamma = 0.05, alpha*k = 0.4, m = 1.75, M = 4:
-# margin +0.0140).  Both numbers were halved from the earlier rho = 2.5,
-# alpha*k = 0.6, which the corrected (1,3) block of Phi_2 no longer certifies.
-# Doubling rho doubles every time constant, so each horizon below is exactly
-# twice its earlier value and the panels keep their shape.
+# margin +0.0140).  rho sets every time constant of the run, which is why the
+# three horizons below scale with it.
 #
 # The LMIs constrain only the product alpha*k, while the residual dither in the
 # state is

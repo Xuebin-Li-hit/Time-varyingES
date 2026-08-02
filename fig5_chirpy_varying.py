@@ -3,9 +3,8 @@ Fig. 4 -- uES with chirpy probing, time-varying extrema.
 
 Chirp phase.  The probing argument in (14) is omega_s * tau with
     tau = t_0 + rho (phi^q(t) - 1),
-so the phase is omega * rho * (phi^q - 1).  An earlier version of this script
-multiplied that by t as well, which is dimensionally wrong (rad*s) and destroys
-the chirp demodulation.
+so the phase is omega * rho * (phi^q - 1) and carries no separate factor t;
+writing one would make the argument rad*s and destroy the demodulation.
 
 Choice of q.  The targets have bounded but non-decaying derivatives, so the
 smallest admissible c in Assumption 2 is c = 0 and Theorem 2 needs c - p < -2,

@@ -92,20 +92,19 @@ def run_ues_prescribed(T=5.0, varrho=2.0, q=2, omega=40.0, alpha=0.4 / 32,
                        phi_cap=7.5):
     """Chirpy uES, prescribed-time configuration (manuscript, Algorithm (14)).
 
-    varrho = 2 rather than 1 puts this run at 1/(q rho) = 1/(varrho T) = 0.1,
-    which together with alpha*k = 0.4 is what the LMIs of Proposition 1 certify
-    for this cost family (m = 1.75, M = 4); see LMI/README.md.  The prescribed
-    time itself is unchanged at T = 5 s, which is the point of the comparison.
-    Since 1/(q rho) = 1/(varrho T) does not involve q, T = 5 forces varrho = 2,
-    hence p = q + varrho - 1 >= 3.
+    The prescribed time is T = 5 s, which is the point of the comparison.
+    Since 1/(q rho) = 1/(varrho T) does not involve q, holding T = 5 at the
+    certified value 1/(q rho) = 0.1 fixes varrho = 2, and hence
+    p = q + varrho - 1 = 3.  Together with alpha*k = 0.4 this is the row the
+    LMIs of Proposition 1 certify for this cost family (m = 1.75, M = 4); see
+    LMI/README.md.
 
-    That extra power of phi is what sets phi_cap.  The post-cap probing
-    frequency is omega*phi_cap^(p+1), and the whole post-cap stretch has to be
-    integrated at it: phi_cap = 10 would put it at 4e5 rad/s and the run does
-    not finish in reasonable time.  phi_cap = 7.5 gives 1.3e5 rad/s, close to
-    the 4e4 of the earlier varrho = 1 setting, at a residual larger by the
-    ratio 10/7.5 -- immaterial next to the two orders of magnitude that
-    separate the two schemes at t = T.
+    p is also what sets phi_cap.  The post-cap probing frequency is
+    omega*phi_cap^(p+1) and the whole post-cap stretch is integrated at it, so
+    phi_cap trades accuracy against run time: 7.5 puts it at 1.3e5 rad/s and
+    finishes in minutes, while 10 would mean 4e5 rad/s and does not finish in
+    reasonable time.  The residual this costs is immaterial next to the two
+    orders of magnitude separating the two schemes at t = T.
     """
     p = q + varrho - 1
     rho = varrho * T / q

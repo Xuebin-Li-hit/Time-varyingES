@@ -36,14 +36,13 @@ plt.rcParams.update({
 
 # ---------------------------------------------------------------- setup
 # These values satisfy the three LMIs of Proposition 1 with margin +0.0126;
-# see LMI/check_lmi.py. The previously used alpha = k = gamma = 1, beta = 1
-# does not (margin -0.201), even though it converges in simulation.
+# see LMI/check_lmi.py.  The certificate is tight in both beta/v and alpha*k
+# for this cost family (m = 1.75, M = 4), which is what fixes them at 0.1 and
+# 0.4: raising either much above that loses feasibility.
 #
-# The certificate is tight in beta/v and in alpha*k, so both were lowered from
-# the first feasible set (beta/v = 0.2, alpha*k = 0.5, margin -0.017 once the
-# sign of the (1,3) block of Phi_2 is corrected).  Halving beta halves the
-# growth of xi, so the horizon is doubled to 400 s and xi(400) = 9 is exactly
-# the xi(200) of the earlier run: the panels are stretched, not weakened.
+# The horizon follows from beta/v.  With beta = 0.2, v = 2 the scaling reaches
+# xi(400) = 9, so 400 s is what it takes for the unbiasing to show clearly
+# against the constant-amplitude baseline.
 N = 5            # agents
 d = 3            # state dimension of each agent
 k = 1.0

@@ -3,7 +3,6 @@
 | script | what it does |
 |---|---|
 | `check_lmi.py` | solves the three LMIs of Proposition 1 as an SDP and reports a feasibility margin, for the example of Section VI-A and for sweeps over `gamma` and `v` |
-| `param_search_sim.py` | simulates the `d = 3` example of Fig. 2 for several parameter sets |
 
 Requires `cvxpy` (CLARABEL or SCS).
 
@@ -13,63 +12,66 @@ Requires `cvxpy` (CLARABEL or SCS).
 |---|---|---|---|---|---|---|
 | Fig. 2 — §VI-A, constant-frequency, `d = 3` | 0.1 (`beta/v`) | 0.1 | 0.4 | 1.75, 4 | **+0.0126** | `p11=2.325, p22=1, delta=0.0719` |
 | Fig. 3 — §VI-B 1, chirpy, `d = 1` | 0.1 | 0.05 | 0.4 | 1.75, 4 | **+0.0140** | `p11=2.375, p22=1, delta=0.0733` |
-| Fig. 4 — §VI-B 2, chirpy, `d = 1` | 0.2 | 0.05 | 1.6 | 2, 2 | **+0.2435** | `p11=2.511, p22=1, delta=1.697` |
+| Fig. 4 — §VI-B 2, chirpy, `d = 1` | 0.2 / 0.1 | 0.05 | 1.6 | 2, 2 | **+0.2435 / +0.2820** | `p11=2.511, delta=1.697` and `p11=2.519, delta=1.819`, both at `p22=1` |
 
-Figs. 2 and 3 use the cost family `||x-c||^2 + ln(1+||x-c||^2)`, whose `M = 4`
-makes the `delta*M^2 = 16*delta` term of `Phi_11` tight, hence the small
-margins; Fig. 4 uses pure quadratics (`m = M = 2`) and is far more relaxed —
-which is why it alone survived the sign correction below without retuning.
+Fig. 4's asymptotic and exponential panels sit at `1/(q rho) = 0.2` and its
+prescribed-time panel at `0.1`, hence the two certificates.
 
-The parameters originally submitted — `alpha = k = gamma = 1`, `v = 2`,
-`beta = 1` for §VI-A and `lambda = 0.03` for §VI-B — gave a margin of −0.201,
-so the figures illustrated cases outside the hypotheses of Theorems 1 and 2.
-Reviewer #4 was already probing this (Comment 5 asks under what conditions the
-matrices of Proposition 1 exist).
+## What makes the margins what they are
 
-## The sign of the (1,3) block of `Phi_2`
+**The cost family sets `m` and `M`, and `M` is the binding one.** Figs. 2 and 3
+use `||x-c||^2 + ln(1+||x-c||^2)`, whose Hessian eigenvalues run over
+`[1.75, 4]`. `Phi_11 = 2(beta/v) p11 - m alpha k p11 + delta M^2` therefore
+carries `16*delta`, which is what keeps those two margins near `10^-2`. Fig. 4
+uses pure quadratics, `m = M = 2`, and is far more relaxed.
 
-The manuscript printed `Phi_2[1,3] = +(p22-p11) alpha k I/2`, but the appendix's
-own eq. (25) gives the coefficient of `u_{f2:N}' g~` as `-(p22-p11) alpha k`.
-Working `Vdot_g` out from `V = zeta_1' P zeta_1` and the dynamics (20),
+**`Phi_11 < 0` forces `alpha k > 2 (beta/v) / m`, while `Phi_2` degrades as
+`alpha k` grows** — its (1,3) and (2,3) blocks scale with it. The two
+requirements squeeze `alpha k` from both sides, and for the `m = 1.75, M = 4`
+family the usable window is roughly `[0.3, 0.6]` once `1/(q rho) = 0.1`.
 
-    Vdot_g = -alpha k [ p11 u_f1' r' g + p22 u' g~ + w' P2' g~ ],
+**Lowering `1/(q rho)` widens that window.** For the same family, `0.2` admits
+no `(gamma, alpha k)` at all, whereas `0.1` admits the row above and `0.05`
+more. Since `1/(q rho)` also sets every time constant of the run, buying margin
+this way costs proportionally longer horizons — which is why Figs. 2 and 3 are
+plotted over 400 s and 60/24/10 s respectively.
 
-and substituting the orthogonality identity `xbar_f' g = u_f1' r' g + u' g~`
-(from `xbar_f = T ubar_f`, `T = [r, R]` orthogonal) yields exactly eq. (25).
-Eq. (26) flipped that sign when transcribing, and `Phi_2` inherited it.
+**`v` is the wrong lever.** The LMIs see only the ratio `beta/v`, but the growth
+of `xi(t) = (1 + beta t)^{1/v}` is governed mainly by the exponent `1/v`.
+Keeping `v` at its smallest admissible value and lowering `beta` therefore buys
+feasibility at the least cost in growth: `beta/v = 0.25` at `v = 2` gives
+`xi(100) = 7.1`, the same ratio at `v = 10` only 1.5.
 
-This is not cosmetic: `diag(I, I, -I)` flips the (1,3) *and* (2,3) blocks
-together, so flipping (1,3) alone is not a congruence and does change
-definiteness. With the correct sign the first gain set loses its certificate,
+**`P3` must be symmetric.** `P` is the Lyapunov matrix of
+`V = zeta_1' P zeta_1`, and the appendix computes `Vdot = 2 zeta_1' P zeta_1dot`,
+which is valid only for symmetric `P`. A non-symmetric `P3` satisfies the matrix
+inequality but certifies nothing, and `V` sees only its symmetric part, so the
+relaxation buys nothing either. (The `P3'` appearing in `Phi_22` is transpose
+bookkeeping for writing the (1,2) block rather than the (2,1) block.)
 
-| figure | printed `+` | corrected `-` |
-|---|---|---|
-| Fig. 2 at `beta/v=0.2, gamma=0.1, alpha*k=0.5` | +0.0103 | **−0.0169** |
-| Fig. 3 at `1/(q rho)=0.2, gamma=0.05, alpha*k=0.6` | +0.0130 | **−0.0249** |
-| Fig. 4 at `1/(q rho)=0.2, gamma=0.05, alpha*k=1.6` | +0.3756 | +0.2435 |
+**The LMIs are homogeneous of degree one** in `(p11, p22, delta, P2, P3)`:
+scaling a feasible point by any positive number keeps it feasible. A plain
+feasibility problem therefore drifts to the origin, where every constraint holds
+only to solver tolerance. `check_lmi.py` fixes the scale with `p22 = 1` (without
+loss of generality, by homogeneity) and maximises a uniform margin instead, so
+that a positive value certifies strict feasibility and a negative one proves
+infeasibility.
 
-and the whole `m = 1.75, M = 4` family is infeasible on the entire row
-`1/(q rho) = 0.2`, for every `gamma` in `[0.005, 1]` and `alpha*k` in
-`[0.24, 4]`. Halving both `1/(q rho)` and `alpha*k` restores it, which is what
-the table at the top now records. Halving `1/(q rho)` doubles every time
-constant, so the horizons of Figs. 2 and 3 were doubled to match and the panels
-keep their shape.
+## Beyond the LMIs
 
-Beyond the LMIs, Theorem 2 also needs `c - p < -2`. For the time-invariant
-examples `c -> -infinity` and this is automatic, but Fig. 4's targets have
-bounded non-decaying derivatives, so `c = 0` and `p > 2` is required. The
-submitted `q = 3, v = 2` gave `p = q - v - 1 = 0` and violated it; `q = 4`
-gives `p = 2.5, 3, 4`.
+Theorem 2 also needs `c - p < -2`. For the time-invariant examples
+`c -> -infinity` and this holds automatically. Fig. 4's targets have bounded but
+non-decaying derivatives, so `c = 0` and `p > 2` is required, which is what
+fixes `q = 4` for its asymptotic and exponential panels (`p = 2.5, 3`) and
+`q = 2, varrho = 2` for its prescribed-time one (`p = 3`).
 
-## A bug the feasibility work uncovered
+## Two implementation points the scripts depend on
 
-Both chirpy scripts computed the probing phase as `cos(omega_t * t + ...)` where
-`omega_t = omega * rho * (phi^q - 1)`. The phase in (14) is `omega * tau` with
-`tau = t_0 + rho (phi^q - 1)`, i.e. `omega_t` itself — the extra `* t` makes the
-argument `rad*s` and destroys the chirp demodulation. Fixed in
-`fig4_chirpy_invariant.py` and `fig5_chirpy_varying.py`. Fig. 2 is unaffected:
-its probing is constant-frequency, so `omega_s * t` is the correct phase there.
+**The chirp phase is `omega * tau`,** with `tau = t_0 + rho (phi^q - 1)`. It
+carries no separate factor `t`; writing one would make the argument `rad*s` and
+destroy the demodulation. Fig. 2 is constant-frequency, so `omega_s * t` is the
+correct phase there.
 
-Related: once `phi` is saturated, the warped time `tau` must keep advancing at
-the frozen rate `d(tau)/dt = phi_cap^(p+1)`. Freezing `tau` along with `phi`
-stops the probing oscillation altogether and the algorithm dies.
+**Once `phi` saturates, the warped time `tau` must keep advancing** at the
+frozen rate `d(tau)/dt = phi_cap^(p+1)`. Freezing `tau` along with `phi` stops
+the probing oscillation altogether and the algorithm dies.
