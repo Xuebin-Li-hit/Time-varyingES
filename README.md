@@ -68,7 +68,7 @@ Each script writes its figures into `out/`.
 program and reports a feasibility margin for the parameter set used in the
 paper. `LMI/param_search_sim.py` sweeps parameter ranges to select feasible
 gains. All three paper figures use **strictly LMI-feasible** gains —
-margins Fig. 2 $+0.0103$, Fig. 3 $+0.0130$, Fig. 4 $+0.376$ / $+0.412$. See
+margins Fig. 2 $+0.0126$, Fig. 3 $+0.0140$, Fig. 4 $+0.244$ / $+0.282$. See
 [`LMI/README.md`](LMI/README.md) for the certificates and usage.
 
 ---
@@ -94,19 +94,19 @@ the columns of
 ```
 
 so $x^{*} \approx (3, 2.4124, 2.5876)$. Gains $v = 2$, $k = 1$, $\gamma = 0.1$,
-$\alpha = 0.5$, $\omega_h = 10$, $\omega = 10$, $\hat{\omega} = (3, 5, 7)$. LMI
-certificate $p_{11} = 1.98$, $p_{22} = 1$, $\delta = 0.058$; margin $+0.0103$.
+$\alpha = 0.4$, $\omega_h = 10$, $\omega = 10$, $\hat{\omega} = (3, 5, 7)$. LMI
+certificate $p_{11} = 2.325$, $p_{22} = 1$, $\delta = 0.0719$; margin $+0.0126$.
 
 $\beta = 0$ gives $\xi(t) \equiv 1$, which reduces the algorithm to bounded ES
 (Scheinker–Krstić) with PI consensus — a published scheme, not a variant of
-ours — and $\beta = 0.4$ is the proposed uES.
+ours — and $\beta = 0.2$ is the proposed uES.
 
 ![Fig. 2](fig/fig2_beta3d.png)
 
-| | error at $t = 200$ |
+| | error at $t = 400$ |
 |---|---|
-| $\beta = 0$ (bounded ES + PI consensus) | $3.4\times 10^{-1}$, stalled |
-| $\beta = 0.4$ (proposed uES) | **$5.3\times 10^{-2}$**, still decreasing |
+| $\beta = 0$ (bounded ES + PI consensus) | $3.3\times 10^{-1}$, stalled |
+| $\beta = 0.2$ (proposed uES) | **$4.2\times 10^{-2}$**, still decreasing |
 
 The point is not the ratio but the *shape*: the left curve reaches a floor set
 by the constant probing amplitude, the right one does not settle on one.
@@ -117,22 +117,28 @@ by the constant probing amplitude, the right one does not settle on one.
 
 Cost $f_i(x) = (x - i)^2 + \ln(1 + (x - i)^2)$, $i = 1,\dots,5$, $d = 1$, minimised at
 $x^{*} = 3$; $x(0) = [-1, 0, 1, 4, 5]$. Shared gains $q = 2$, $k = 32$,
-$\alpha = 0.01875$ (so $\alpha k = 0.6$), $\gamma = 0.05$, $\omega = 40$,
-$\omega_h = 8$. All three configurations have $1/(q\rho) = 0.2$ and therefore
-share one LMI certificate, margin $+0.0130$.
+$\alpha = 0.0125$ (so $\alpha k = 0.4$), $\gamma = 0.05$, $\omega = 40$,
+$\omega_h = 8$. All three configurations have $\rho = 5$, hence
+$1/(q\rho) = 0.1$, and therefore share one LMI certificate
+($p_{11} = 2.375$, $p_{22} = 1$, $\delta = 0.0733$), margin $+0.0140$.
 
-| panel | $\phi(t)$ | parameters | $p$ |
-|---|---|---|---|
-| asymptotic | $(1 + \beta t)^{1/v}$ | $\beta = 0.1$, $v = 0.5$ | 0.5 |
-| exponential | $e^{\lambda t}$ | $\lambda = 0.2$ | 1 |
-| prescribed-time | $(T/(T - t))^{1/\varrho}$ | $T = 5$, $\varrho = 1$ | 2 |
+| panel | $\phi(t)$ | parameters | $p$ | horizon |
+|---|---|---|---|---|
+| asymptotic | $(1 + \beta t)^{1/v}$ | $\beta = 0.05$, $v = 0.5$ | 0.5 | 60 s |
+| exponential | $e^{\lambda t}$ | $\lambda = 0.1$ | 1 | 24 s |
+| prescribed-time | $(T/(T - t))^{1/\varrho}$ | $T = 10$, $\varrho = 1$ | 2 | 10 s |
 
 ![Fig. 3](fig/fig3_chirpy_invariant.png)
 
-Final errors $2.5\times 10^{-3}$ / $2.8\times 10^{-3}$ / $3.8\times 10^{-3}$. $\phi$ is capped only in the
-prescribed-time panel (at $t = 4.5$, unavoidable since $\phi \to \infty$ as
+Final errors $2.8\times 10^{-3}$ / $2.5\times 10^{-3}$ / $1.5\times 10^{-3}$. $\phi$ is capped only in the
+prescribed-time panel (at $t = 9$, unavoidable since $\phi \to \infty$ as
 $t \to T$); the horizons of the other two are short enough that their caps never
 activate.
+
+Every time constant here is exactly twice its earlier value: the corrected
+$\Phi_{2}$ (see `LMI/README.md`) rules out $1/(q\rho) = 0.2$ for this cost
+family, and doubling $\rho$ from $2.5$ to $5$ is what restores the certificate.
+Doubling each horizon to match keeps the panels' shape unchanged.
 
 ## 3. Chirpy probing, time-varying extremum (Fig. 4 of the paper)
 
@@ -148,8 +154,15 @@ $k = 1$, $\alpha = 1.6$, $\gamma = 0.05$, $\omega = 400$, $\omega_h = 8$.
 The targets have bounded but non-decaying derivatives, so $c = 0$ in Assumption
 2 and Theorem 2 needs $c - p < -2$, i.e. $p > 2$. Hence $q = 4$ for the
 asymptotic and exponential panels ($p = 2.5, 3$) and $q = 2$, $\varrho = 2$ for
-the prescribed-time one ($p = 3$). Growth parameters are those of Example 2.
-Margins $+0.376$ / $+0.376$ / $+0.412$.
+the prescribed-time one ($p = 3$). Growth parameters $\beta = 0.1$, $v = 0.5$;
+$\lambda = 0.2$; $T = 5$, so $1/(q\rho) = 0.2$ for the first two and $0.1$ for
+the third. Margins $+0.244$ / $+0.244$ / $+0.282$; certificates
+$p_{11} = 2.511$, $\delta = 1.697$ and $p_{11} = 2.519$, $\delta = 1.819$, both
+at $p_{22} = 1$.
+
+This is the one example the corrected $\Phi_{2}$ left alone: its costs are pure
+quadratics, $m = M = 2$, so the $\delta M^{2}$ term of $\Phi_{11}$ is loose and
+the gains stayed certified without retuning.
 
 ![Fig. 4](fig/fig4_chirpy_varying.png)
 
@@ -170,20 +183,28 @@ where the cap is placed on a common post-cap frequency of $80\,000\,\text{rad/s}
 
 Their law also covers strongly connected weight-balanced digraphs, so both
 schemes run on the *same* directed ring — no graph has to be rebuilt. Gains
-$\alpha = \beta = 1$; ours is the prescribed-time configuration of Example 2 with
-$T = 5$.
+$\alpha = \beta = 1$; ours is the prescribed-time configuration with $T = 5$,
+$\varrho = 2$, $q = 2$, $\alpha k = 0.4$, $\gamma = 0.05$, $\omega = 40$,
+$\omega_h = 8$, i.e. $1/(q\rho) = 1/(\varrho T) = 0.1$ — the certified row of
+`LMI/README.md`. Since $1/(q\rho)$ does not involve $q$, holding $T = 5$ forces
+$\varrho = 2$ and hence $p = q + \varrho - 1 = 3$; $\phi$ is capped at $7.5$
+(reached at $t = 4.91$), which puts the post-cap probing frequency at
+$1.3\times 10^{5}\,\text{rad/s}$.
 
 ![Fig. R1](fig/compare_gradient.png)
 
 | | error at $t = 5$ | error at $t = 30$ |
 |---|---|---|
 | Kia et al. (gradient-based) | $3.74\times 10^{-1}$ | $5.07\times 10^{-5}$ |
-| proposed uES, prescribed $T = 5$ | **$2.66\times 10^{-3}$** | $3.93\times 10^{-3}$ |
+| proposed uES, prescribed $T = 5$ | **$1.65\times 10^{-3}$** | $1.29\times 10^{-3}$ |
 
 Their law evaluates $\nabla f_i$ and so needs the analytic expression of each
-local cost; ours only samples the value $f_i(x_i)$. At $t = T = 5$ ours is $140\times$
-closer. Past $T$ the gradient method keeps improving and eventually wins on
-absolute accuracy — it has exact gradients and no dither floor.
+local cost; ours only samples the value $f_i(x_i)$. And their exponential rate
+is fixed by the gains and cannot be *assigned*: at $t = T = 5$ ours is
+$226\times$ closer, and their error does not reach ours until $t = 20.5$. Past
+that the gradient method keeps improving and eventually wins on absolute
+accuracy — it has exact gradients and no dither floor. That is the honest
+trade-off and is worth stating rather than hiding.
 
 ## 5. Against a classical ES method, on its own smart-grid application
 
@@ -191,15 +212,18 @@ absolute accuracy — it has exact gradients and no dither floor.
 
 > M. Ye and G. Hu, *Distributed extremum seeking for constrained networked
 > optimization and its application to energy consumption control in smart
-> grid*, IEEE TCST 24(6) 2016, algorithm (8).
+> grid*, IEEE TCST 24(6) 2016, algorithm (8):
+> $x_{ij} = \hat{x}_{ij} + b\sin(\omega_{ij} t)$,
+> $\dot{\hat{x}}_{ij} = -k\bigl( f_i(\mathbf{x}_i)\sin(\omega_{ij} t) + \frac{b}{2}[ (L\hat{x})_{ij} + (Lz)_{ij} ]\bigr)$,
+> $\dot{z}_{ij} = \theta\,(L\hat{x})_{ij}$.
 
 Their Section VII: $N = 5$ users with HVAC systems agree on a consumption
 profile $l \in \mathbb{R}^5$ (so $d = 5$, and every user estimates all five entries),
 trading discomfort against a usage-dependent price,
 
-$$
-f_i(l) = \rho_i (l_i - \hat{l}_i)^2 + \bigl( k_p (\sum\nolimits_j l_j - L^{*}) + p_0 \bigr) l_i
-$$
+```
+f_i(l) = rho_i (l_i - lhat_i)^2 + ( k_p (sum_j l_j - L*) + p0 ) l_i
+```
 
 with $\rho = (5.2, 5.4, 5.6, 5.8, 6.0)$, $\hat{l} = (3, 3.5, 4, 4.5, 5)$,
 $k_p = 0.5$, $p_0 = 1$, $L^{*} = 0.8\sum\hat{l}_i = 16$. Magnitudes are their Table I
@@ -228,7 +252,8 @@ $\gamma = 0.05$, $\omega_h = 8$; $\phi(200) = 21$, so no cap is needed.
   means here.
 * **Graph class.** Their Lemma 1 and Assumption 1 need an *undirected*
   connected graph, so their scheme runs on the undirected 5-cycle while ours
-  runs on the directed ring with the same edges.
+  runs on the directed ring with the same edges. Putting this in the paper would
+  mean introducing and displaying a second topology — which is why it is here.
 * **Probing frequencies.** They need one per (agent, coordinate) pair,
   $N \times d = 25$; we need one per coordinate, $d = 5$, because the demodulation is
   carried by the phase $k\phi\,(f_i - \eta_i)$.

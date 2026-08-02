@@ -2,8 +2,8 @@
 Three-dimensional (d = 3) version of the constant-frequency example.
 
 Produces the two panels of Fig. 2:
-    out/beta3d=0.eps   beta = 0  -> bounded (biased) ES
-    out/beta3d=1.eps   beta = 0.4 -> asymptotic uES
+    out/beta3d=0.eps   beta = 0   -> bounded (biased) ES
+    out/beta3d=1.eps   beta = 0.2 -> asymptotic uES
 
 Both panels show the tracking error ||x(t) - 1_N (x) x*|| on a semilogarithmic
 axis, smoothed by a sliding maximum over one probing period, and share the
@@ -35,19 +35,25 @@ plt.rcParams.update({
 })
 
 # ---------------------------------------------------------------- setup
-# These values satisfy the three LMIs of Proposition 1 with margin +0.0103;
+# These values satisfy the three LMIs of Proposition 1 with margin +0.0126;
 # see LMI/check_lmi.py. The previously used alpha = k = gamma = 1, beta = 1
 # does not (margin -0.201), even though it converges in simulation.
+#
+# The certificate is tight in beta/v and in alpha*k, so both were lowered from
+# the first feasible set (beta/v = 0.2, alpha*k = 0.5, margin -0.017 once the
+# sign of the (1,3) block of Phi_2 is corrected).  Halving beta halves the
+# growth of xi, so the horizon is doubled to 400 s and xi(400) = 9 is exactly
+# the xi(200) of the earlier run: the panels are stretched, not weakened.
 N = 5            # agents
 d = 3            # state dimension of each agent
 k = 1.0
 omega_h = 10.0
 omega = 10.0     # base probing frequency
-alpha = 0.5
+alpha = 0.4      # alpha * k = 0.4
 v = 2.0
 a = 1.0          # proportional consensus gain
 b = 0.1          # integral consensus gain  (gamma in the paper)
-t_span = (0.0, 200.0)
+t_span = (0.0, 400.0)
 
 # Distinct integer multipliers, one per coordinate (Theorem 1 requires
 # hat_omega_s in N, pairwise distinct).  Beyond that condition, the choice
@@ -131,39 +137,43 @@ def run(belta):
     # is ~8x faster than Radau here and gives identical trajectories
     sol = solve_ivp(make_system(belta), t_span, y0, method='DOP853',
                     dense_output=True, rtol=1e-8, atol=1e-10)
-    t = np.linspace(t_span[0], sol.t[-1], 14000)
+    t = np.linspace(t_span[0], sol.t[-1], 28000)
     X = sol.sol(t)[:N * d].reshape(N, d, -1)
     err = np.linalg.norm(X - x_star[None, :, None], axis=(0, 1))
     return t, err
 
 
 t0, e0 = run(0.0)   # bounded ES
-t1, e1 = run(0.4)   # asymptotic uES
+t1, e1 = run(0.2)   # asymptotic uES,  beta/v = 0.1
 
 # envelope over roughly one period of the slowest dither
 ENV_WIN = max(1, int(len(t0) * (2 * np.pi / omega_s[0]) / (t0[-1] - t0[0])))
 e0 = maximum_filter1d(e0, size=ENV_WIN)
 e1 = maximum_filter1d(e1, size=ENV_WIN)
 
-fig1, ax1 = plt.subplots(figsize=(5, 4))
-ax1.semilogy(t0, e0, color='C0')
-ax1.set_xlabel('Time (sec)')
-ax1.set_ylabel(r'$\|\mathbf{x}(t)-\mathbf{1}_N\otimes x^*\|$', fontsize=16)
-ax1.set_title('Bounded ES')
-ax1.grid(True)
-
-fig2, ax2 = plt.subplots(figsize=(5, 4))
-ax2.semilogy(t1, e1, color='C0')
-ax2.set_xlabel('Time (sec)')
-ax2.set_title('Asymptotic uES')
-ax2.grid(True)
-
+# Fixed canvas and a common axes rectangle for both panels: tight_layout would
+# shrink the data area of whichever panel carries the y-label, so the two
+# subfigures would end up with different plot widths once LaTeX scales them to
+# equal column fractions.
+RECT = [0.235, 0.175, 0.700, 0.735]   # right edge 0.935: room for the "400" tick
 lo = min(e0.min(), e1.min())
 hi = max(e0.max(), e1.max())
-for _ax in (ax1, ax2):
-    _ax.set_ylim(lo / 2, hi * 2)
-for _fig, _name in ((fig1, 'out/beta3d=0.eps'), (fig2, 'out/beta3d=1.eps')):
-    _fig.tight_layout(pad=0.2)
-    _fig.savefig(_name, format='eps')
+
+for _t, _e, _title, _ylab, _name in (
+        (t0, e0, 'Bounded ES',    True,  'out/beta3d=0.eps'),
+        (t1, e1, 'Asymptotic uES', False, 'out/beta3d=1.eps')):
+    fig = plt.figure(figsize=(5, 4))
+    ax = fig.add_axes(RECT)
+    ax.semilogy(_t, _e, color='C0')
+    ax.set_xlabel('Time (sec)')
+    if _ylab:
+        ax.set_ylabel(r'$\|\mathbf{x}(t)-\mathbf{1}_N\otimes x^*\|$', fontsize=16)
+    ax.set_title(_title)
+    ax.set_xlim(t_span)
+    ax.set_xticks([0, 100, 200, 300, 400])
+    ax.set_ylim(lo / 2, hi * 2)
+    ax.grid(True)
+    fig.savefig(_name, format='eps')
+    plt.close(fig)
 
 print(f"final error: bounded ES {e0[-1]:.3e} | asymptotic uES {e1[-1]:.3e}")

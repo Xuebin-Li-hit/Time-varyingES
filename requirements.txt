@@ -1,4 +1,4 @@
 numpy
 scipy
 matplotlib
-cvxpy        # only needed for the LMI feasibility checks in LMI/
+cvxpy

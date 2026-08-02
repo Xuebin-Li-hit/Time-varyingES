@@ -8,7 +8,7 @@ scalars {p11, p22, delta} such that
           [   *     P3 ]  >  0,
 
     Phi_11 = 2(beta/v) p11 - m alpha k p11 + delta M^2,
-    Phi_2  = [ Phi_21   Phi_22            (p22-p11) alpha k I/2 ]
+    Phi_2  = [ Phi_21   Phi_22           -(p22-p11) alpha k I/2 ]
              [   *     -(P2+P2^T)/2      -alpha k P2^T/2        ]
              [   *        *              -delta I               ],
     Phi_21 = -p22 (Lc + Lc^T) + gamma (P2 Lc + Lc^T P2^T),
@@ -98,7 +98,7 @@ def margin(beta_over_v, gamma=GAMMA, ak=ALPHA * K_GAIN, m=M_LO, M=M_HI,
     Phi11 = 2 * beta_over_v * p11 - m * ak * p11 + delta * M ** 2
     Phi21 = -p22 * (Lc + Lc.T) + gamma * (P2 @ Lc + Lc.T @ P2.T)
     Phi22 = -p22 * np.eye(n) + gamma * Lc.T @ P3.T - Lc.T @ P2
-    Phi13 = 0.5 * (p22 - p11) * ak * np.eye(n)
+    Phi13 = -0.5 * (p22 - p11) * ak * np.eye(n)
     Phi23 = -0.5 * ak * P2.T
 
     Phi2 = cp.bmat([[Phi21,    Phi22,               Phi13],

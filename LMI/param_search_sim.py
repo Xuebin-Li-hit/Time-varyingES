@@ -14,6 +14,12 @@ lowering beta therefore buys feasibility at the least cost in growth:
 beta/v = 0.25 with v = 2 gives xi(100) = 7.1, while the same ratio with v = 10
 gives only 1.5.
 
+NOTE.  The margins hardcoded in the candidate table below were produced before
+the sign of the (1,3) block of Phi_2 was corrected (see LMI/README.md), and
+none of those candidates survives the correction.  They are kept because the
+*simulations* they label are still what motivated the eventual choice; for
+current feasibility always read check_lmi.py, never this table.
+
 Run:  python3 param_search_sim.py
 """
 
